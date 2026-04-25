@@ -1,0 +1,122 @@
+@startuml
+title SGOI - Flujo General del Proyecto Completo
+
+skinparam shadowing false
+skinparam roundcorner 18
+skinparam defaultTextAlignment center
+skinparam rectangle {
+  BackgroundColor #F8F8F8
+  BorderColor #555555
+}
+
+' ===== FILA 1 =====
+rectangle "1. Fuentes corporativas" as F1 {
+  rectangle "TAT\nInventario" as A1
+  rectangle "ENG\nDatos técnicos" as A2
+  rectangle "ZABBIX\nHW/SW" as A3
+  rectangle "RESCO\nReportes" as A4
+}
+
+' ===== FILA 2 =====
+rectangle "2. Preparación de datos" as F2 {
+  rectangle "Importar / sincronizar\ndatos" as B1
+  rectangle "Normalizar\ndatos maestros" as B2
+  rectangle "Catálogo\nPART" as B3
+  rectangle "Activos\nASSET" as B4
+  rectangle "Códigos internos\n+ QR" as B5
+
+  B1 -right-> B2
+  B2 -right-> B3
+  B3 -right-> B4
+  B4 -right-> B5
+}
+
+' ===== FILA 3 =====
+rectangle "3. Operación en campo" as F3 {
+  rectangle "Inicio de\nintervención" as C1
+  rectangle "Escanear QR /\nbuscar equipo" as C2
+  rectangle "Validar serial /\npart / descripción" as C3
+  rectangle "Autocompletar\no registrar excepción" as C4
+  rectangle "Datos del\nservicio" as C5
+
+  C1 -right-> C2
+  C2 -right-> C3
+  C3 -right-> C4
+  C4 -right-> C5
+}
+
+' ===== FILA 4 =====
+rectangle "4. Evidencia e historial" as F4 {
+  rectangle "Capturar\nfotografías" as D1
+  rectangle "Guardar\nintervención" as D2
+  rectangle "Actualizar\nestado" as D3
+  rectangle "Actualizar\nubicación" as D4
+  rectangle "Registrar\nhistorial" as D5
+
+  D1 -right-> D2
+  D2 -right-> D3
+  D3 -right-> D4
+  D4 -right-> D5
+}
+
+' ===== FILA 5 =====
+rectangle "5. Ficha digital e integraciones" as F5 {
+  rectangle "Consolidar ficha\ndigital del activo" as E1
+  rectangle "Adjuntar info\nENG" as E2
+  rectangle "Adjuntar info\nZABBIX" as E3
+  rectangle "Inventario validado\nTAT" as E4
+
+  E1 -right-> E2
+  E2 -right-> E3
+  E3 -right-> E4
+}
+
+' ===== FILA 6 =====
+rectangle "6. Reporte y consulta" as F6 {
+  rectangle "Generar reporte\nestructurado" as G1
+  rectangle "Exportar\nPDF" as G2
+  rectangle "Enviar / sincronizar\ncon RESCO" as G3
+  rectangle "Consulta supervisor /\ngerente" as G4
+
+  G1 -right-> G2
+  G2 -right-> G3
+  G3 -right-> G4
+}
+
+' ===== CONEXIONES ENTRE FILAS =====
+A1 -down-> B1
+A2 -down-> B1
+A3 -down-> B1
+B5 -down-> C1
+C5 -down-> D1
+D5 -down-> E1
+E4 -down-> G1
+A4 -down-> G3
+
+' ===== NOTAS =====
+note right of C5
+RIG, pozo, fecha,
+tipo de evento,
+descripción, técnico
+end note
+
+note right of E1
+Ficha única:
+inventario + hardware +
+software + ubicación +
+historial + evidencia
+end note
+
+note right of G1
+Incluye:
+- inventario validado
+- evidencia fotográfica
+- datos técnicos disponibles
+end note
+
+note bottom of F5
+En MVP la integración puede ser semiautomática mediante Excel/CSV.
+En versión completa puede evolucionar a APIs o conectores formales.
+end note
+
+@enduml

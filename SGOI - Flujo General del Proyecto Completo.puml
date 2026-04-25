@@ -1,0 +1,73 @@
+@startuml
+title SGOI - Flujo General del Proyecto Completo
+
+start
+
+:Preparación de datos;
+:Importar inventario desde TAT;
+:Normalizar datos maestros;
+:Crear catálogo de modelos (PART);
+:Registrar activos físicos (ASSET);
+:Asignar códigos internos a equipos sin serial;
+:Generar QR / código de barras;
+
+:Inicio de intervención (Técnico);
+
+repeat
+  :Escanear QR o buscar equipo;
+  :Validar serial / part number / descripción;
+
+  if (¿Datos válidos?) then (Sí)
+    :Autocompletar información del equipo;
+  else (No)
+    :Registrar corrección o excepción;
+  endif
+
+repeat while (¿Agregar más equipos?) is (Sí)
+
+:Ingresar datos del servicio;
+note right
+RIG, pozo, fecha,
+tipo de evento,
+descripción, técnico
+end note
+
+if (¿Requiere evidencia fotográfica?) then (Sí)
+  :Capturar y adjuntar fotografías;
+endif
+
+:Guardar intervención;
+:Actualizar estado del activo;
+:Actualizar ubicación del activo;
+:Registrar historial del movimiento;
+
+:Consolidar ficha digital del activo;
+
+if (¿Hay integración disponible con ENG?) then (Sí)
+  :Consultar datos técnicos del equipo;
+  :Adjuntar información de ingeniería;
+endif
+
+if (¿Hay integración disponible con ZABBIX?) then (Sí)
+  :Consultar configuración / versiones;
+  :Adjuntar información técnica de software;
+endif
+
+:Generar reporte estructurado;
+:Incluir inventario validado;
+:Incluir evidencia fotográfica;
+:Incluir datos técnicos disponibles;
+:Exportar PDF;
+
+if (¿Hay integración disponible con RESCO?) then (Sí)
+  :Enviar / sincronizar resumen del servicio;
+endif
+
+:Consulta por supervisor / gerente;
+:Ver inventario;
+:Ver historial;
+:Ver reportes;
+:Ver ficha técnica del activo;
+
+stop
+@enduml

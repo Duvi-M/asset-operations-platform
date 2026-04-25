@@ -1,0 +1,73 @@
+@startuml
+title SGOI - Flujo Operativo de la Versión 1 (MVP)
+
+start
+
+:Importar inventario desde Excel/TAT;
+:Normalizar datos básicos;
+:Registrar catálogo PART;
+:Registrar activos ASSET;
+:Asignar código interno a equipos sin serial;
+
+:Inicio de nuevo reporte (Técnico);
+:Seleccionar tipo de evento;
+note right
+Instalación
+Desinstalación
+Soporte técnico
+Soporte remoto
+Reemplazo
+Envío desde base
+Recepción en campo
+end note
+
+:Ingresar datos del servicio;
+note right
+RIG, pozo, fecha,
+descripción, técnico
+end note
+
+repeat
+  :Escanear QR / código de barras;
+  :Buscar equipo automáticamente en la base de datos;
+
+  if (¿Lectura correcta?) then (Sí)
+    :Cargar datos del equipo;
+  else (No)
+    :Buscar o seleccionar equipo manualmente;
+  endif
+
+  :Validar part number / serial / descripción;
+
+  if (¿Equipo existe?) then (Sí)
+    :Asociar equipo al reporte;
+  else (No)
+    :Registrar equipo manualmente;
+  endif
+
+repeat while (¿Agregar más equipos?) is (Sí)
+
+if (¿El evento requiere fotos?) then (Sí)
+  :Adjuntar evidencia fotográfica;
+endif
+
+:Guardar reporte;
+:Actualizar estado del equipo;
+:Actualizar ubicación;
+:Registrar historial;
+
+:Generar PDF estándar;
+note right
+Incluye:
+- trabajo realizado
+- inventario asociado
+- fotografías
+end note
+
+:Consultar reportes e inventario;
+note right
+Supervisor / gerente / admin
+end note
+
+stop
+@enduml
