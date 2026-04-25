@@ -1,8 +1,10 @@
 from datetime import datetime
-from pydantic import Field, model_validator
+from pydantic import Field, model_validator, computed_field
 from app.schemas.base import AppModel
 from app.schemas.part import PartRead
 from app.models.asset import AssetStatus
+
+QR_PREFIX = "SGOI-ASSET-"
 
 
 # ── Write schemas ──────────────────────────────────────────────────────────────
@@ -65,6 +67,12 @@ class AssetRead(AppModel):
     created_at: datetime
     updated_at: datetime
 
+    @computed_field
+    @property
+    def qr_code_value(self) -> str:
+        """Stable QR content for this asset: SGOI-ASSET-{id}"""
+        return f"{QR_PREFIX}{self.id}"
+
 
 class AssetReadSlim(AppModel):
     """Lightweight version used inside nested responses."""
@@ -75,6 +83,11 @@ class AssetReadSlim(AppModel):
     item_name: str
     status: AssetStatus
     location: str | None
+
+    @computed_field
+    @property
+    def qr_code_value(self) -> str:
+        return f"{QR_PREFIX}{self.id}"
 
 
 # ── List response ──────────────────────────────────────────────────────────────

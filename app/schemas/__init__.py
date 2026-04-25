@@ -8,6 +8,7 @@ from app.schemas.intervention import (
     InterventionAssetCreate, InterventionAssetRead,
     EvidenceRead, EvidenceList,
 )
+from app.schemas.excel_import import ImportResult, ImportRowError, ColumnMapping
 
 __all__ = [
     "PartCreate", "PartRead", "PartUpdate", "PartList",
@@ -16,4 +17,5 @@ __all__ = [
     "InterventionUpdate", "InterventionList",
     "InterventionAssetCreate", "InterventionAssetRead",
     "EvidenceRead", "EvidenceList",
+    "ImportResult", "ImportRowError", "ColumnMapping",
 ]

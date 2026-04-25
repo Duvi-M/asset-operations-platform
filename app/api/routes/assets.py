@@ -1,13 +1,41 @@
 from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.models.asset import AssetStatus
 from app.schemas.asset import AssetCreate, AssetRead, AssetUpdate, AssetList
-from app.services import asset_service
+from app.services import asset_service, qr_service
 
 router = APIRouter(prefix="/assets", tags=["Assets"])
 
+# ─────────────────────────────────────────────────────────────────────────────
+# IMPORTANT: fixed-path routes (/scan/..., /qr) MUST be registered before
+# parameterised routes (/{asset_id}) so FastAPI doesn't try to coerce the
+# literal string "scan" into an integer path parameter.
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+# ── Scan lookup — fixed path, registered first ────────────────────────────────
+
+@router.get(
+    "/scan/{code}",
+    response_model=AssetRead,
+    summary="Buscar un Asset por código escaneado",
+    description=(
+        "Resuelve un código escaneado (QR, serial o código interno) al Asset correspondiente.\n\n"
+        "**Estrategias de búsqueda (en orden):**\n"
+        "1. Patrón QR propio: `SGOI-ASSET-{id}`\n"
+        "2. `serial_number` — coincidencia exacta, sin distinción de mayúsculas\n"
+        "3. `internal_code` — coincidencia exacta, sin distinción de mayúsculas\n\n"
+        "Devuelve **404** si el código no coincide con ningún Asset."
+    ),
+)
+def scan_asset(code: str, db: Session = Depends(get_db)):
+    return qr_service.resolve_scan_code(db, code)
+
+
+# ── Collection endpoints ──────────────────────────────────────────────────────
 
 @router.post(
     "",
@@ -29,7 +57,10 @@ def list_assets(
     limit: int = Query(50, ge=1, le=200),
     status: AssetStatus | None = Query(None, description="Filtrar por estado"),
     part_id: int | None = Query(None, description="Filtrar por Part"),
-    search: str | None = Query(None, description="Busca en item_name, serial, code, location"),
+    search: str | None = Query(
+        None,
+        description="Busca en item_name, serial_number, internal_code, location",
+    ),
     db: Session = Depends(get_db),
 ):
     total, items = asset_service.list_assets(
@@ -39,6 +70,8 @@ def list_assets(
     )
     return AssetList(total=total, items=items)
 
+
+# ── Single-asset endpoints — parameterised routes last ────────────────────────
 
 @router.get(
     "/{asset_id}",
@@ -56,3 +89,42 @@ def get_asset(asset_id: int, db: Session = Depends(get_db)):
 )
 def update_asset(asset_id: int, data: AssetUpdate, db: Session = Depends(get_db)):
     return asset_service.update_asset(db, asset_id, data)
+
+
+@router.get(
+    "/{asset_id}/qr",
+    summary="Generar imagen PNG del código QR de un Asset",
+    description=(
+        "Genera y descarga una imagen PNG con el código QR del Asset.\n\n"
+        "El QR contiene el valor `SGOI-ASSET-{id}`, estable e inequívoco.\n"
+        "La imagen incluye una etiqueta de texto con el identificador "
+        "y el serial / código interno para lectura humana."
+    ),
+    responses={
+        200: {
+            "content": {"image/png": {}},
+            "description": "Imagen PNG del código QR.",
+        },
+        404: {"description": "Asset no encontrado."},
+    },
+)
+def get_asset_qr(asset_id: int, db: Session = Depends(get_db)):
+    # Validate asset exists first — returns 404 if not
+    asset = asset_service.get_asset_or_404(db, asset_id)
+
+    # Human-readable label: prefer serial, fall back to internal_code
+    label = asset.serial_number or asset.internal_code or asset.item_name
+
+    png_bytes = qr_service.generate_qr_png(asset_id=asset_id, label=label)
+
+    filename = f"qr_asset_{asset_id}.png"
+    return Response(
+        content=png_bytes,
+        media_type="image/png",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(png_bytes)),
+            # Allow caching — QR content never changes for a given ID
+            "Cache-Control": "public, max-age=86400",
+        },
+    )
