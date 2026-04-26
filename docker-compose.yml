@@ -9,8 +9,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-sgoi_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sgoi_pass}
       POSTGRES_DB: ${POSTGRES_DB:-sgoi_db}
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

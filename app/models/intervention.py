@@ -25,15 +25,20 @@ class Intervention(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     type: Mapped[InterventionType] = mapped_column(
-        Enum(InterventionType, name="intervention_type"), nullable=False
+        Enum(
+            InterventionType,
+            name="intervention_type",
+            values_callable=lambda enum_cls: [e.value for e in enum_cls],
+        ),
+        nullable=False,
     )
+
     rig: Mapped[str] = mapped_column(String(150), nullable=False, index=True)
     pozo: Mapped[str] = mapped_column(String(150), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     technician: Mapped[str] = mapped_column(String(200), nullable=False)
     date: Mapped[date] = mapped_column(Date, nullable=False)
 
-    # Audit fields
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -41,7 +46,6 @@ class Intervention(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
-    # Relationships
     intervention_assets: Mapped[list["InterventionAsset"]] = relationship(
         "InterventionAsset", back_populates="intervention", cascade="all, delete-orphan"
     )
@@ -69,15 +73,12 @@ class InterventionAsset(Base):
         ForeignKey("assets.id", ondelete="RESTRICT"), nullable=False, index=True
     )
 
-    # Optional per-asset notes within this intervention
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    # Audit
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    # Relationships
     intervention: Mapped["Intervention"] = relationship(
         "Intervention", back_populates="intervention_assets"
     )
@@ -104,12 +105,10 @@ class Evidence(Base):
     original_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    # Audit
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    # Relationships
     intervention: Mapped["Intervention"] = relationship(
         "Intervention", back_populates="evidences"
     )

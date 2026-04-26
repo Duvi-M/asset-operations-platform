@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session, joinedload, selectinload
 
+from app.models.asset import Asset
 from app.models.intervention import Intervention, InterventionAsset
 from app.schemas.intervention import (
     InterventionCreate, InterventionUpdate, InterventionAssetCreate,
@@ -15,7 +16,7 @@ def _load_full(db: Session, intervention_id: int) -> Intervention:
         .options(
             selectinload(Intervention.intervention_assets).joinedload(
                 InterventionAsset.asset
-            ).joinedload("part"),
+            ).joinedload(Asset.part),
             selectinload(Intervention.evidences),
         )
         .filter(Intervention.id == intervention_id)
@@ -118,7 +119,7 @@ def add_asset_to_intervention(
     ia_loaded = (
         db.query(InterventionAsset)
         .options(
-            joinedload(InterventionAsset.asset).joinedload("part")
+            joinedload(InterventionAsset.asset).joinedload(Asset.part)
         )
         .filter(InterventionAsset.id == ia.id)
         .first()

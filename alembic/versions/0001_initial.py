@@ -7,6 +7,7 @@ Create Date: 2025-01-01 00:00:00.000000
 """
 from typing import Sequence, Union
 
+from sqlalchemy.dialects import postgresql
 from alembic import op
 import sqlalchemy as sa
 
@@ -18,16 +19,27 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # --- ENUMS ---
-    asset_status_enum = sa.Enum(
+    sa.Enum(
         "available", "in_use", "maintenance", "retired", "unknown",
         name="asset_status"
-    )
-    intervention_type_enum = sa.Enum(
+    ).create(op.get_bind(), checkfirst=True)
+
+    sa.Enum(
         "installation", "support", "maintenance", "inspection", "removal", "other",
         name="intervention_type"
+    ).create(op.get_bind(), checkfirst=True)
+
+    asset_status_enum = postgresql.ENUM(
+        "available", "in_use", "maintenance", "retired", "unknown",
+        name="asset_status",
+        create_type=False
     )
-    asset_status_enum.create(op.get_bind(), checkfirst=True)
-    intervention_type_enum.create(op.get_bind(), checkfirst=True)
+
+    intervention_type_enum = postgresql.ENUM(
+        "installation", "support", "maintenance", "inspection", "removal", "other",
+        name="intervention_type",
+        create_type=False
+    )
 
     # --- PARTS ---
     op.create_table(

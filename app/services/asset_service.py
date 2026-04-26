@@ -79,7 +79,12 @@ def list_assets(
         )
 
     total = q.count()
-    items = q.order_by(Asset.item_name).offset(skip).limit(limit).all()
+    items = q.order_by(
+    Asset.item_name.asc(),
+    Asset.serial_number.asc(),
+    Asset.id.asc()
+    ).offset(skip).limit(limit).all()
+    
     return total, items
 
 

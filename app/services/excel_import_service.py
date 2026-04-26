@@ -140,9 +140,10 @@ def _str(value: Any, max_len: int = MAX_FIELD_LEN) -> str | None:
     return s[:max_len] if s else None
 
 
-def _normalise_status(value: Any) -> AssetStatus:
+def _normalise_status(value: Any) -> str:
     v = _str(value)
-    return STATUS_MAP.get(v.lower() if v else "", AssetStatus.UNKNOWN)
+    status = STATUS_MAP.get(v.lower() if v else "", AssetStatus.UNKNOWN)
+    return status.value
 
 
 def _meaningful_size(raw: str | None) -> str | None:
@@ -383,6 +384,11 @@ def import_excel(
         item_name = item_name[:MAX_FIELD_LEN]
 
         status   = _normalise_status(raw_stat)
+
+        if status not in result.status_counts:
+            result.status_counts[status] = 0
+        result.status_counts[status] += 1
+
         location = raw_loc[:MAX_FIELD_LEN] if raw_loc else None
         identifier = serial_number or internal_code
 
@@ -463,7 +469,7 @@ def import_excel(
             elif action == "updated":
                 result.assets_updated += 1
             else:
-                result.rows_skipped += 1
+                result.assets_unchanged += 1
 
     # ── Final commit ───────────────────────────────────────────────────────────
     try:

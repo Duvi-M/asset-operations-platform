@@ -38,12 +38,14 @@ class ImportResult(AppModel):
     )
 
     # Counters
-    total_rows:     int = Field(0, description="Filas de datos leídas (sin encabezado)")
-    parts_created:  int = 0
-    parts_reused:   int = 0
-    assets_created: int = 0
-    assets_updated: int = 0
-    rows_skipped:   int = 0
+    total_rows:       int = Field(0, description="Filas de datos leídas (sin encabezado)")
+    parts_created:    int = 0
+    parts_reused:     int = 0
+    assets_created:   int = 0
+    assets_updated:   int = 0
+    rows_skipped:     int = 0
+    assets_unchanged: int = 0
+    status_counts:    dict[str, int] = Field(default_factory=dict)
 
     # Per-row errors (capped at 500)
     errors: list[ImportRowError] = Field(default_factory=list)

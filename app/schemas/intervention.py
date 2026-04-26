@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date as Date
 from pydantic import Field
 from app.schemas.base import AppModel
 from app.schemas.asset import AssetReadSlim
@@ -40,7 +40,7 @@ class InterventionCreate(AppModel):
     pozo: str = Field(..., min_length=1, max_length=150, examples=["POZO-A-14"])
     description: str | None = Field(None, max_length=5000)
     technician: str = Field(..., min_length=1, max_length=200, examples=["Juan Pérez"])
-    date: date = Field(..., examples=["2025-06-01"])
+    date: Date = Field(..., examples=["2025-06-01"])
 
 
 class InterventionUpdate(AppModel):
@@ -50,7 +50,7 @@ class InterventionUpdate(AppModel):
     pozo: str | None = Field(None, min_length=1, max_length=150)
     description: str | None = Field(None, max_length=5000)
     technician: str | None = Field(None, min_length=1, max_length=200)
-    date: date | None = None
+    date: Date | None = None
 
 
 class InterventionRead(AppModel):
@@ -60,7 +60,7 @@ class InterventionRead(AppModel):
     pozo: str
     description: str | None
     technician: str
-    date: date
+    date: Date
     created_at: datetime
     updated_at: datetime
     intervention_assets: list[InterventionAssetRead] = []
@@ -74,7 +74,7 @@ class InterventionReadSlim(AppModel):
     rig: str
     pozo: str
     technician: str
-    date: date
+    date: Date
     asset_count: int = 0
     evidence_count: int = 0
 
