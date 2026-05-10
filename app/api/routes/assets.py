@@ -27,7 +27,7 @@ router = APIRouter(prefix="/assets", tags=["Assets"], dependencies=[Depends(get_
     description=(
         "Resuelve un código escaneado (QR, serial o código interno) al Asset correspondiente.\n\n"
         "**Estrategias de búsqueda (en orden):**\n"
-        "1. Patrón QR propio: `SGOI-ASSET-{id}`\n"
+        "1. Patrón QR propio: `AOP-ASSET-{id}`\n"
         "2. `serial_number` — coincidencia exacta, sin distinción de mayúsculas\n"
         "3. `internal_code` — coincidencia exacta, sin distinción de mayúsculas\n\n"
         "Devuelve **404** si el código no coincide con ningún Asset."
@@ -123,7 +123,7 @@ def update_asset(
     summary="Generar imagen PNG del código QR de un Asset",
     description=(
         "Genera y descarga una imagen PNG con el código QR del Asset.\n\n"
-        "El QR contiene el valor `SGOI-ASSET-{id}`, estable e inequívoco.\n"
+        "El QR contiene el valor `AOP-ASSET-{id}`, estable e inequívoco.\n"
         "La imagen incluye una etiqueta de texto con el identificador "
         "y el serial / código interno para lectura humana."
     ),

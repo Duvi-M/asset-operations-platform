@@ -53,7 +53,7 @@ function AppShell() {
   return (
     <div className="app-shell">
       <header className="header">
-        <span className="header-logo">SGOI</span>
+        <span className="header-logo">AssetOps</span>
         <span className="header-sub">Sistema de Gestión Operativa e Inventario</span>
         <div className="header-user">
           <div className="header-user-meta">

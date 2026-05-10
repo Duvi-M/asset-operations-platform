@@ -36,7 +36,7 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-brand">SGOI</div>
+        <div className="auth-brand">AssetOps</div>
         <h1 className="auth-title">Iniciar sesión</h1>
         <p className="auth-copy">
           Accede para gestionar equipos, intervenciones, evidencias y reportes desde campo.

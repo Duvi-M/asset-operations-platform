@@ -271,7 +271,7 @@ export default function AssetsPage() {
           <form onSubmit={handleScan} className="scan-form">
             <input value={scanCode} onChange={e => setScanCode(e.target.value)}
               className="touch-input"
-              placeholder="SGOI-ASSET-42, SN-001, INT-ABC..." enterKeyHint="search" />
+              placeholder="AOP-ASSET-42, SN-001, INT-ABC..." enterKeyHint="search" />
             <button className="btn btn-primary" disabled={scanning || !scanCode.trim()}>
               {scanning ? 'Buscando…' : 'Buscar código'}
             </button>

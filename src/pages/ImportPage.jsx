@@ -50,7 +50,7 @@ export default function ImportPage() {
 
       <div className="panel">
         <div className="panel-header">
-          <span className="panel-title">⬆ Cargar archivo TAT</span>
+          <span className="panel-title">⬆ Cargar archivo Excel</span>
         </div>
 
         <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

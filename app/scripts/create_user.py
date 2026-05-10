@@ -18,7 +18,7 @@ def prompt_password() -> str:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Crear usuario para SGOI.")
+    parser = argparse.ArgumentParser(description="Crear usuario para AssetOps.")
     parser.add_argument("--email", required=True, help="Email del usuario")
     parser.add_argument("--full-name", required=True, help="Nombre completo")
     parser.add_argument(

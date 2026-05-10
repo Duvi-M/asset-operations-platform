@@ -70,7 +70,7 @@ def upload_to_cloudinary(
     """
     _ensure_configured()
 
-    folder = f"sgoi/interventions/{intervention_id}"
+    folder = f"asset-operations-platform/interventions/{intervention_id}"
 
     try:
         result = cloudinary.uploader.upload(

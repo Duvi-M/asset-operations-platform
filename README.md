@@ -211,11 +211,11 @@ Create a .env file in the project root.
 Example:
 
 ```env
-DATABASE_URL=postgresql://sgoi_user:sgoi_pass@db:5432/sgoi_db
+DATABASE_URL=postgresql://asset_ops_user:asset_ops_pass@db:5432/asset_ops_db
 AUTO_CREATE_TABLES=false
 AUTH_SECRET_KEY=replace-this-with-a-secure-secret
 ACCESS_TOKEN_EXP_MINUTES=720
-AUTH_ISSUER=sgoi
+AUTH_ISSUER=asset-operations-platform
 MEDIA_DIR=/app/media
 CLOUDINARY_URL=
 ```

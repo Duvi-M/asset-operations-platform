@@ -11,7 +11,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <div className="wordmark">SGOI</div>
+        <div className="wordmark">AssetOps</div>
         <div className="tagline">Gestión Operativa e Inventario</div>
       </div>
 

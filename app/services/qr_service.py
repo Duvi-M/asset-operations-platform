@@ -3,7 +3,7 @@ QR / barcode service for Assets.
 
 QR code content format
 ----------------------
-  SGOI-ASSET-{id}
+  AOP-ASSET-{id}
 
 This value is:
   - Stable (ID never changes)
@@ -12,7 +12,7 @@ This value is:
 
 Scan resolution order (GET /assets/scan/{code})
 ------------------------------------------------
-  1. QR prefix pattern  →  SGOI-ASSET-{id}  →  lookup by numeric ID
+  1. QR prefix pattern  →  AOP-ASSET-{id}  →  lookup by numeric ID
   2. serial_number      →  case-insensitive exact match
   3. internal_code      →  case-insensitive exact match
 
@@ -20,7 +20,7 @@ Image generation
 ----------------
   - Library : qrcode[pil]  (pure-Python QR + Pillow rendering)
   - Format  : PNG, returned as raw bytes
-  - The PNG embeds a small SGOI label below the QR matrix using
+  - The PNG embeds a small AssetOps label below the QR matrix using
     Pillow's ImageDraw so the printout is human-readable too.
 """
 
@@ -40,8 +40,8 @@ logger = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
-QR_PREFIX         = "SGOI-ASSET-"
-QR_PREFIX_PATTERN = re.compile(r"^SGOI-ASSET-(\d+)$", re.IGNORECASE)
+QR_PREFIX         = "AOP-ASSET-"
+QR_PREFIX_PATTERN = re.compile(r"^AOP-ASSET-(\d+)$", re.IGNORECASE)
 
 # Visual config
 QR_BOX_SIZE   = 10    # pixels per QR module
@@ -133,7 +133,7 @@ def resolve_scan_code(db: Session, code: str) -> Asset:
     """
     Resolve a scanned code to an Asset using three strategies in order:
 
-    1. QR prefix pattern  →  SGOI-ASSET-{id}
+    1. QR prefix pattern  →  AOP-ASSET-{id}
     2. serial_number      →  case-insensitive exact match
     3. internal_code      →  case-insensitive exact match
 
@@ -141,7 +141,7 @@ def resolve_scan_code(db: Session, code: str) -> Asset:
     """
     code = code.strip()
 
-    # ── Strategy 1: SGOI-ASSET-{id} ───────────────────────────────────────────
+    # ── Strategy 1: AOP-ASSET-{id} ───────────────────────────────────────────
     match = QR_PREFIX_PATTERN.match(code)
     if match:
         asset_id = int(match.group(1))

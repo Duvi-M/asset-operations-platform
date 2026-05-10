@@ -79,7 +79,7 @@ function AssociatePanel({ interventionId, onAdded }) {
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && doSearch()}
           enterKeyHint="search"
-          placeholder="Buscar por nombre, serial o QR: 9442, COMPUTER, SGOI-ASSET-94..."
+          placeholder="Buscar por nombre, serial o QR: 9442, COMPUTER, AOP-ASSET-94..."
         />
 
         <button className="btn btn-primary" disabled={searching} onClick={doSearch}>
@@ -88,7 +88,7 @@ function AssociatePanel({ interventionId, onAdded }) {
       </div>
 
       <div className="quick-hint-row">
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setQuery('SGOI-ASSET-')}>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setQuery('AOP-ASSET-')}>
           Pegar prefijo QR
         </button>
         <span className="helper-text">Primero busca y luego completa ubicación o notas solo si agregan contexto real.</span>

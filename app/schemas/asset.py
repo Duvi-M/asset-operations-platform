@@ -4,7 +4,7 @@ from app.schemas.base import AppModel
 from app.schemas.part import PartRead
 from app.models.asset import AssetStatus
 
-QR_PREFIX = "SGOI-ASSET-"
+QR_PREFIX = "AOP-ASSET-"
 
 
 # ── Write schemas ──────────────────────────────────────────────────────────────
@@ -70,7 +70,7 @@ class AssetRead(AppModel):
     @computed_field
     @property
     def qr_code_value(self) -> str:
-        """Stable QR content for this asset: SGOI-ASSET-{id}"""
+        """Stable QR content for this asset: AOP-ASSET-{id}"""
         return f"{QR_PREFIX}{self.id}"
 
 

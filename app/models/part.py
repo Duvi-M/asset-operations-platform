@@ -7,7 +7,7 @@ from app.core.database import Base
 class Part(Base):
     """
     Equipment catalog (part/model definition).
-    Imported from TAT Excel exports.
+    Imported from external inventory exports.
     """
     __tablename__ = "parts"
 

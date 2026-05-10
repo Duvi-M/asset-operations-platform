@@ -1,9 +1,8 @@
-const PROD_API_URL = 'https://project-nov.onrender.com'
 const ENV_API_URL = (import.meta.env.VITE_API_URL || '').trim()
-const API_URL = ENV_API_URL || (import.meta.env.DEV ? '' : PROD_API_URL)
-const DOCS_BASE_URL = ENV_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : PROD_API_URL)
+const API_URL = ENV_API_URL || (import.meta.env.DEV ? '' : '')
+const DOCS_BASE_URL = ENV_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : window.location.origin)
 const BASE = `${API_URL}/api/v1`
-const AUTH_STORAGE_KEY = 'sgoi_auth'
+const AUTH_STORAGE_KEY = 'asset_ops_auth'
 
 function getStoredSession() {
   if (typeof window === 'undefined') return null

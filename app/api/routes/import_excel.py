@@ -29,7 +29,7 @@ MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
     status_code=status.HTTP_200_OK,
     summary="Importar inventario desde un archivo Excel (.xlsx)",
     description=(
-        "Carga un archivo `.xlsx` exportado del sistema TAT y realiza un upsert "
+        "Carga un archivo `.xlsx` exportado del external inventory system y realiza un upsert "
         "de Parts y Assets en la base de datos.\n\n"
         "**Columnas reconocidas** (el nombre exacto no importa, se detecta por alias):\n"
         "- `Part Number` / `PN` / `Part#`\n"
@@ -52,7 +52,7 @@ MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
 async def import_excel(
     file: UploadFile = File(
         ...,
-        description="Archivo .xlsx del TAT (máx. 20 MB)",
+        description="Archivo .xlsx de inventario (máx. 20 MB)",
     ),
     sheet: str | None = Query(
         None,
