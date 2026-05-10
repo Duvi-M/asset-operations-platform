@@ -1,13 +1,21 @@
+import logging
+
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.models.part import Part
 from app.schemas.part import PartCreate, PartUpdate
-from app.services.exceptions import not_found, conflict
+from app.services.exceptions import not_found, conflict, service_unavailable
+
+logger = logging.getLogger(__name__)
 
 
 def get_part_or_404(db: Session, part_id: int) -> Part:
-    part = db.get(Part, part_id)
+    try:
+        part = db.get(Part, part_id)
+    except SQLAlchemyError:
+        logger.exception("Database error loading part", extra={"part_id": part_id})
+        raise service_unavailable("No fue posible consultar el part en este momento.")
     if not part:
         raise not_found("Part", part_id)
     return part
@@ -26,7 +34,12 @@ def create_part(db: Session, data: PartCreate) -> Part:
         db.refresh(part)
     except IntegrityError:
         db.rollback()
+        logger.warning("Part create conflict", extra={"part_number": data.part_number})
         raise conflict(f"Ya existe un Part con part_number='{data.part_number}'.")
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Database error creating part")
+        raise service_unavailable("No fue posible registrar el part en este momento.")
     return part
 
 
@@ -42,8 +55,12 @@ def list_parts(
             Part.part_number.ilike(f"%{search}%") |
             Part.description.ilike(f"%{search}%")
         )
-    total = q.count()
-    items = q.order_by(Part.part_number).offset(skip).limit(limit).all()
+    try:
+        total = q.count()
+        items = q.order_by(Part.part_number).offset(skip).limit(limit).all()
+    except SQLAlchemyError:
+        logger.exception("Database error listing parts", extra={"skip": skip, "limit": limit})
+        raise service_unavailable("No fue posible listar los parts en este momento.")
     return total, items
 
 
@@ -69,4 +86,8 @@ def update_part(db: Session, part_id: int, data: PartUpdate) -> Part:
     except IntegrityError:
         db.rollback()
         raise conflict(f"Ya existe un Part con part_number='{patch.get('part_number')}'.")
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Database error updating part", extra={"part_id": part_id})
+        raise service_unavailable("No fue posible actualizar el part en este momento.")
     return part

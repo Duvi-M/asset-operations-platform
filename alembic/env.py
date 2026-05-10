@@ -18,7 +18,7 @@ import app.models  # noqa: F401
 config = context.config
 
 # Override sqlalchemy.url from our settings
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option("sqlalchemy.url", settings.sqlalchemy_database_url)
 
 # Logging setup
 if config.config_file_name is not None:

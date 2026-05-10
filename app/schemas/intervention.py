@@ -20,7 +20,8 @@ class EvidenceRead(AppModel):
 
 class InterventionAssetCreate(AppModel):
     asset_id: int = Field(..., gt=0, examples=[1])
-    notes: str | None = Field(None, max_length=2000, examples=["Instalado en rack 3"])
+    location_note: str | None = Field(None, max_length=255, examples=["Cabina del operador"])
+    notes: str | None = Field(None, max_length=2000, examples=["Cable dañado, pendiente revisión"])
 
 
 class InterventionAssetRead(AppModel):
@@ -28,6 +29,7 @@ class InterventionAssetRead(AppModel):
     intervention_id: int
     asset_id: int
     asset: AssetReadSlim
+    location_note: str | None
     notes: str | None
     created_at: datetime
 
@@ -41,6 +43,7 @@ class InterventionCreate(AppModel):
     description: str | None = Field(None, max_length=5000)
     technician: str = Field(..., min_length=1, max_length=200, examples=["Juan Pérez"])
     date: Date = Field(..., examples=["2025-06-01"])
+    end_date: Date | None = Field(None, examples=["2025-06-02"])
 
 
 class InterventionUpdate(AppModel):
@@ -51,6 +54,7 @@ class InterventionUpdate(AppModel):
     description: str | None = Field(None, max_length=5000)
     technician: str | None = Field(None, min_length=1, max_length=200)
     date: Date | None = None
+    end_date: Date | None = None
 
 
 class InterventionRead(AppModel):
@@ -61,6 +65,7 @@ class InterventionRead(AppModel):
     description: str | None
     technician: str
     date: Date
+    end_date: Date | None = None
     created_at: datetime
     updated_at: datetime
     intervention_assets: list[InterventionAssetRead] = []
@@ -75,6 +80,7 @@ class InterventionReadSlim(AppModel):
     pozo: str
     technician: str
     date: Date
+    end_date: Date | None = None
     asset_count: int = 0
     evidence_count: int = 0
 

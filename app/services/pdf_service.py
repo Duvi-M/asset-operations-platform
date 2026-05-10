@@ -42,6 +42,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.intervention import Intervention, InterventionAsset
 from app.services.intervention_service import get_intervention_or_404
+from app.services import cloudinary_service
 
 # ── Brand colours ──────────────────────────────────────────────────────────────
 BRAND_DARK   = colors.HexColor("#1A2B4A")   # navy — header bg
@@ -146,7 +147,7 @@ def _header_footer(canvas, doc, intervention, styles):
     # Title text
     canvas.setFillColor(WHITE)
     canvas.setFont("Helvetica-Bold", 16)
-    canvas.drawCentredString(PAGE_W / 2, PAGE_H - 1.5 * cm, "SGOI — Reporte de Intervención")
+    canvas.drawCentredString(PAGE_W / 2, PAGE_H - 1.5 * cm, "Pasaporte Digital — Reporte de Servicio")
 
     canvas.setFillColor(colors.HexColor("#BFDBFE"))
     canvas.setFont("Helvetica", 8)
@@ -219,7 +220,7 @@ def _assets_table(intervention_assets: list, styles) -> Table:
     ]
     header = [
         Paragraph(h, styles["table_header"])
-        for h in ["#", "Part Number", "Nombre del equipo", "Serial / Código", "Estado", "Ubicación"]
+        for h in ["#", "Part Number", "Nombre del equipo", "Serial / Código", "Estado", "Ubicación en campo"]
     ]
     rows = [header]
 
@@ -232,7 +233,7 @@ def _assets_table(intervention_assets: list, styles) -> Table:
             Paragraph(asset.item_name, styles["table_cell"]),
             Paragraph(identifier, styles["table_cell"]),
             Paragraph(asset.status.value.replace("_", " ").title(), styles["table_cell"]),
-            Paragraph(asset.location or "—", styles["table_cell"]),
+            Paragraph(ia.location_note or asset.location or "—", styles["table_cell"]),
         ])
 
     t = Table(rows, colWidths=col_widths, repeatRows=1)
@@ -261,7 +262,12 @@ def _assets_table(intervention_assets: list, styles) -> Table:
 
 
 def _evidence_grid(evidences, styles) -> list:
-    """Renders evidence images in a 3-column grid with captions."""
+    """
+    Renders evidence images in a 3-column grid with captions.
+
+    Image resolution is delegated to cloudinary_service.resolve_image_for_pdf(),
+    which handles both Cloudinary URLs and legacy local paths transparently.
+    """
     if not evidences:
         return [Paragraph("No se adjuntaron evidencias fotográficas.", styles["body"])]
 
@@ -272,11 +278,12 @@ def _evidence_grid(evidences, styles) -> list:
     row = []
 
     for idx, ev in enumerate(evidences, start=1):
-        abs_path = Path(settings.media_dir) / ev.file_path
+        # Returns BytesIO (Cloudinary) | str (local path) | None (not found)
+        img_source = cloudinary_service.resolve_image_for_pdf(ev.file_path)
 
-        if abs_path.exists():
+        if img_source is not None:
             try:
-                img = Image(str(abs_path), width=IMG_W, height=IMG_H)
+                img = Image(img_source, width=IMG_W, height=IMG_H)
                 img.hAlign = "CENTER"
                 caption = Paragraph(
                     f"<font size='7' color='#6B7280'>{idx}. {ev.original_filename or 'imagen'}</font>",
@@ -315,7 +322,6 @@ def _evidence_grid(evidences, styles) -> list:
 
     # Remaining images (< 3 in last row)
     if row:
-        # Pad with empty cells
         while len(row) < 3:
             row.append([Spacer(1, 1)])
         t = Table([row], colWidths=[IMG_W] * 3)
@@ -372,10 +378,11 @@ def generate_intervention_pdf(db: Session, intervention_id: int) -> bytes:
     story = []
 
     # ── 1. General data ────────────────────────────────────────────────────────
-    story += _section_title("Datos Generales de la Intervención", styles)
+    story += _section_title("Datos Generales", styles)
 
     type_label = intervention.type.value.replace("_", " ").title()
     date_str = intervention.date.strftime("%d / %m / %Y")
+    end_date_str = intervention.end_date.strftime("%d / %m / %Y") if intervention.end_date else "—"
 
     # Split into two side-by-side info tables
     left_rows = [
@@ -384,9 +391,12 @@ def generate_intervention_pdf(db: Session, intervention_id: int) -> bytes:
         ("RIG",                intervention.rig),
         ("Pozo",               intervention.pozo),
     ]
+
+    end_date_str = intervention.end_date.strftime("%d / %m / %Y") if intervention.end_date else "—"
     right_rows = [
         ("Técnico responsable", intervention.technician),
-        ("Fecha de intervención", date_str),
+        ("Fecha de inicio", date_str),
+        ("Fecha de finalización", end_date_str),
         ("Equipos asociados",   str(len(intervention.intervention_assets))),
         ("Evidencias",          str(len(intervention.evidences))),
     ]
@@ -430,7 +440,7 @@ def generate_intervention_pdf(db: Session, intervention_id: int) -> bytes:
     story.append(KeepTogether(two_col))
 
     # ── 2. Description ─────────────────────────────────────────────────────────
-    story += _section_title("Descripción de la Intervención", styles)
+    story += _section_title("Descripción de la actividad", styles)
     desc_text = intervention.description or "Sin descripción registrada."
     story.append(Paragraph(desc_text, styles["body"]))
 

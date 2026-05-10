@@ -26,6 +26,7 @@ Image generation
 
 import io
 import re
+import logging
 
 import qrcode
 import qrcode.constants
@@ -33,7 +34,9 @@ from PIL import Image, ImageDraw, ImageFont
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.asset import Asset
-from app.services.exceptions import not_found
+from app.services.exceptions import not_found, service_unavailable
+
+logger = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -142,43 +145,52 @@ def resolve_scan_code(db: Session, code: str) -> Asset:
     match = QR_PREFIX_PATTERN.match(code)
     if match:
         asset_id = int(match.group(1))
-        asset = (
-            db.query(Asset)
-            .options(joinedload(Asset.part))
-            .filter(Asset.id == asset_id)
-            .first()
-        )
+        try:
+            asset = (
+                db.query(Asset)
+                .options(joinedload(Asset.part))
+                .filter(Asset.id == asset_id)
+                .first()
+            )
+        except Exception:
+            logger.exception("Database error resolving QR asset id", extra={"asset_id": asset_id})
+            raise service_unavailable("No fue posible resolver el código escaneado en este momento.")
         if asset:
+            logger.info("Asset scan resolved by QR id", extra={"asset_id": asset_id})
             return asset
         # The QR code was well-formed but the ID doesn't exist
         raise not_found("Asset", asset_id)
 
     # ── Strategy 2: serial_number (case-insensitive) ───────────────────────────
-    asset = (
-        db.query(Asset)
-        .options(joinedload(Asset.part))
-        .filter(Asset.serial_number.ilike(code))
-        .first()
-    )
+    try:
+        asset = (
+            db.query(Asset)
+            .options(joinedload(Asset.part))
+            .filter(Asset.serial_number.ilike(code))
+            .first()
+        )
+    except Exception:
+        logger.exception("Database error resolving scan by serial", extra={"code": code})
+        raise service_unavailable("No fue posible resolver el código escaneado en este momento.")
     if asset:
+        logger.info("Asset scan resolved by serial", extra={"asset_id": asset.id})
         return asset
 
     # ── Strategy 3: internal_code (case-insensitive) ───────────────────────────
-    asset = (
-        db.query(Asset)
-        .options(joinedload(Asset.part))
-        .filter(Asset.internal_code.ilike(code))
-        .first()
-    )
+    try:
+        asset = (
+            db.query(Asset)
+            .options(joinedload(Asset.part))
+            .filter(Asset.internal_code.ilike(code))
+            .first()
+        )
+    except Exception:
+        logger.exception("Database error resolving scan by internal code", extra={"code": code})
+        raise service_unavailable("No fue posible resolver el código escaneado en este momento.")
     if asset:
+        logger.info("Asset scan resolved by internal code", extra={"asset_id": asset.id})
         return asset
 
     # Nothing found by any strategy
-    from fastapi import HTTPException, status as http_status
-    raise HTTPException(
-        status_code=http_status.HTTP_404_NOT_FOUND,
-        detail=(
-            f"No se encontró ningún Asset con código '{code}'. "
-            "Se buscó en: QR (SGOI-ASSET-{{id}}), serial_number, internal_code."
-        ),
-    )
+    logger.warning("Asset scan not found", extra={"code": code})
+    raise not_found("Asset", code)

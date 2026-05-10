@@ -2,6 +2,8 @@
 from app.models.part import Part
 from app.models.asset import Asset, AssetStatus
 from app.models.intervention import Intervention, InterventionAsset, Evidence, InterventionType
+from app.models.user import User, UserRole
+from app.models.audit_log import AuditLog
 
 __all__ = [
     "Part",
@@ -11,4 +13,7 @@ __all__ = [
     "InterventionAsset",
     "Evidence",
     "InterventionType",
+    "User",
+    "UserRole",
+    "AuditLog",
 ]

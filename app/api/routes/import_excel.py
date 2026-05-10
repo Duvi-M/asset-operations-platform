@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.deps import require_admin
 from app.core.database import get_db
 from app.schemas.excel_import import ImportResult
 from app.services import excel_import_service
@@ -61,7 +62,20 @@ async def import_excel(
         ),
     ),
     db: Session = Depends(get_db),
+    _=Depends(require_admin),
 ):
+    content_type = (file.content_type or "").split(";")[0].strip().lower()
+    if content_type and content_type not in ALLOWED_CONTENT_TYPES:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={
+                "detail": (
+                    f"Tipo de archivo '{content_type}' no permitido. "
+                    "Solo se aceptan archivos Excel .xlsx."
+                )
+            },
+        )
+
     # ── Filename extension check ───────────────────────────────────────────────
     filename = file.filename or "upload.xlsx"
     if not filename.lower().endswith(".xlsx"):

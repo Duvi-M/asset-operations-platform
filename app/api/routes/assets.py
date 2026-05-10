@@ -2,12 +2,14 @@ from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user, require_admin
 from app.core.database import get_db
 from app.models.asset import AssetStatus
+from app.models.user import User
 from app.schemas.asset import AssetCreate, AssetRead, AssetUpdate, AssetList
-from app.services import asset_service, qr_service
+from app.services import asset_service, qr_service, audit_service
 
-router = APIRouter(prefix="/assets", tags=["Assets"])
+router = APIRouter(prefix="/assets", tags=["Assets"], dependencies=[Depends(get_current_user)])
 
 # ─────────────────────────────────────────────────────────────────────────────
 # IMPORTANT: fixed-path routes (/scan/..., /qr) MUST be registered before
@@ -31,8 +33,24 @@ router = APIRouter(prefix="/assets", tags=["Assets"])
         "Devuelve **404** si el código no coincide con ningún Asset."
     ),
 )
-def scan_asset(code: str, db: Session = Depends(get_db)):
-    return qr_service.resolve_scan_code(db, code)
+def scan_asset(
+    code: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    asset = qr_service.resolve_scan_code(db, code)
+    audit_service.log_action(
+        user_id=current_user.id,
+        action="scan_asset",
+        entity_type="asset",
+        entity_id=asset.id,
+        metadata={
+            "code": code,
+            "serial_number": asset.serial_number,
+            "internal_code": asset.internal_code,
+        },
+    )
+    return asset
 
 
 # ── Collection endpoints ──────────────────────────────────────────────────────
@@ -43,7 +61,11 @@ def scan_asset(code: str, db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
     summary="Registrar un Asset (equipo físico)",
 )
-def create_asset(data: AssetCreate, db: Session = Depends(get_db)):
+def create_asset(
+    data: AssetCreate,
+    db: Session = Depends(get_db),
+    _=Depends(require_admin),
+):
     return asset_service.create_asset(db, data)
 
 
@@ -87,7 +109,12 @@ def get_asset(asset_id: int, db: Session = Depends(get_db)):
     response_model=AssetRead,
     summary="Actualizar campos de un Asset (PATCH)",
 )
-def update_asset(asset_id: int, data: AssetUpdate, db: Session = Depends(get_db)):
+def update_asset(
+    asset_id: int,
+    data: AssetUpdate,
+    db: Session = Depends(get_db),
+    _=Depends(require_admin),
+):
     return asset_service.update_asset(db, asset_id, data)
 
 

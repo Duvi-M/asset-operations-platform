@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../api'
+import { api } from '../services/api'
 import { Loading, Empty, Pagination } from '../components/ui'
 
 const TYPE_LABELS = {
@@ -44,7 +44,7 @@ export default function InterventionsPage() {
         <h1 className="page-title">// INTERVENCIONES</h1>
         {!loading && <span className="page-count">{total} reportes</span>}
         <button className="btn btn-primary" style={{marginLeft:'auto'}} onClick={() => navigate('/interventions/new')}>
-          + Nueva
+          + Nueva intervención
         </button>
       </div>
 
@@ -58,7 +58,7 @@ export default function InterventionsPage() {
           {loading ? <Loading /> : items.length === 0 ? (
             <Empty icon="⬒" message="No hay intervenciones. Crea una nueva." />
           ) : (
-            <table>
+            <table className="responsive-table">
               <thead><tr>
                 <th>ID</th><th>Tipo</th><th>RIG</th><th>Pozo</th>
                 <th>Técnico</th><th>Fecha</th><th>Equipos</th><th>Fotos</th><th></th>
@@ -66,23 +66,23 @@ export default function InterventionsPage() {
               <tbody>
                 {items.map(i => (
                   <tr key={i.id} style={{cursor:'pointer'}} onClick={() => navigate(`/interventions/${i.id}`)}>
-                    <td className="mono text-muted">{i.id}</td>
-                    <td>
+                    <td data-label="ID" className="mono text-muted">{i.id}</td>
+                    <td data-label="Tipo">
                       <span className="mono" style={{color: TYPE_COLORS[i.type] ?? 'var(--text-muted)', fontSize:11}}>
                         {TYPE_LABELS[i.type] ?? i.type}
                       </span>
                     </td>
-                    <td style={{fontWeight:500,color:'var(--text-primary)'}}>{i.rig}</td>
-                    <td className="mono" style={{color:'var(--cyan)'}}>{i.pozo}</td>
-                    <td>{i.technician}</td>
-                    <td className="mono text-muted">{formatDate(i.date)}</td>
-                    <td className="mono" style={{color: i.asset_count > 0 ? 'var(--blue)' : 'var(--text-muted)'}}>
+                    <td data-label="RIG" style={{fontWeight:500,color:'var(--text-primary)'}}>{i.rig}</td>
+                    <td data-label="Pozo" className="mono" style={{color:'var(--cyan)'}}>{i.pozo}</td>
+                    <td data-label="Técnico">{i.technician}</td>
+                    <td data-label="Fecha" className="mono text-muted">{formatDate(i.date)}</td>
+                    <td data-label="Equipos" className="mono" style={{color: i.asset_count > 0 ? 'var(--blue)' : 'var(--text-muted)'}}>
                       {i.asset_count}
                     </td>
-                    <td className="mono" style={{color: i.evidence_count > 0 ? 'var(--green)' : 'var(--text-muted)'}}>
+                    <td data-label="Fotos" className="mono" style={{color: i.evidence_count > 0 ? 'var(--green)' : 'var(--text-muted)'}}>
                       {i.evidence_count}
                     </td>
-                    <td><span style={{color:'var(--amber)',fontSize:13}}>→</span></td>
+                    <td data-label="Abrir"><span style={{color:'var(--amber)',fontSize:13}}>→</span></td>
                   </tr>
                 ))}
               </tbody>

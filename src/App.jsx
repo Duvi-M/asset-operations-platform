@@ -1,42 +1,74 @@
-import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Routes, Route, NavLink, useLocation, Navigate, Outlet } from 'react-router-dom'
 import AssetsPage from './pages/AssetsPage'
 import ImportPage from './pages/ImportPage'
 import InterventionsPage from './pages/InterventionsPage'
 import InterventionDetailPage from './pages/InterventionDetailPage'
 import NewInterventionPage from './pages/NewInterventionPage'
+import LoginPage from './pages/LoginPage'
+import { Loading } from './components/ui'
+import { api } from './services/api'
+import { useAuth } from './auth/AuthContext'
 
 const NAV = [
   {
     section: 'Inventario',
     items: [
-      { to: '/assets', icon: '⬡', label: 'Assets' },
-      { to: '/import', icon: '⬆', label: 'Importar Excel' },
+      { to: '/assets', icon: '⬡', label: 'Assets', roles: ['admin', 'technician'] },
+      { to: '/import', icon: '⬆', label: 'Importar Excel', roles: ['admin'] },
     ],
   },
   {
     section: 'Operaciones',
     items: [
-      { to: '/interventions', icon: '⬒', label: 'Intervenciones' },
-      { to: '/interventions/new', icon: '+', label: 'Nueva Intervención' },
+      { to: '/interventions', icon: '⬒', label: 'Intervenciones', roles: ['admin', 'technician'] },
+      { to: '/interventions/new', icon: '+', label: 'Nueva Intervención', roles: ['admin', 'technician'] },
     ],
   },
 ]
 
-export default function App() {
+function RequireAuth() {
+  const { user, booting } = useAuth()
   const location = useLocation()
+
+  if (booting) return <Loading label="Restaurando sesión..." />
+  if (!user) return <Navigate to="/login" replace state={{ from: location }} />
+  return <Outlet />
+}
+
+function RequireRole({ allowedRoles, children }) {
+  const { user } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  if (!allowedRoles.includes(user.role)) return <Navigate to="/assets" replace />
+  return children
+}
+
+function AppShell() {
+  const location = useLocation()
+  const { user, logout } = useAuth()
+  const nav = NAV.map(section => ({
+    ...section,
+    items: section.items.filter(item => item.roles.includes(user.role)),
+  }))
 
   return (
     <div className="app-shell">
-      {/* Header */}
       <header className="header">
         <span className="header-logo">SGOI</span>
         <span className="header-sub">Sistema de Gestión Operativa e Inventario</span>
+        <div className="header-user">
+          <div className="header-user-meta">
+            <span className="header-user-name">{user.full_name}</span>
+            <span className="header-user-role">{user.role === 'admin' ? 'Admin' : 'Técnico'}</span>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={logout}>
+            Salir
+          </button>
+        </div>
         <span className="header-dot" title="API conectada" />
       </header>
 
-      {/* Sidebar */}
       <nav className="sidebar">
-        {NAV.map(({ section, items }) => (
+        {nav.map(({ section, items }) => (
           <div className="nav-section" key={section}>
             <span className="nav-label">{section}</span>
             {items.map(({ to, icon, label }) => (
@@ -59,7 +91,7 @@ export default function App() {
         <div className="nav-section">
           <span className="nav-label">Sistema</span>
           <a
-            href="http://localhost:8000/docs"
+            href={api.docsUrl}
             target="_blank"
             rel="noreferrer"
             className="nav-link"
@@ -70,17 +102,37 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Main */}
       <main className="main">
-        <Routes>
-          <Route path="/" element={<AssetsPage />} />
+        <Outlet />
+      </main>
+    </div>
+  )
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+
+      <Route element={<RequireAuth />}>
+        <Route element={<AppShell />}>
+          <Route path="/" element={<Navigate to="/assets" replace />} />
           <Route path="/assets" element={<AssetsPage />} />
-          <Route path="/import" element={<ImportPage />} />
+          <Route
+            path="/import"
+            element={(
+              <RequireRole allowedRoles={['admin']}>
+                <ImportPage />
+              </RequireRole>
+            )}
+          />
           <Route path="/interventions" element={<InterventionsPage />} />
           <Route path="/interventions/new" element={<NewInterventionPage />} />
           <Route path="/interventions/:id" element={<InterventionDetailPage />} />
-        </Routes>
-      </main>
-    </div>
+        </Route>
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }

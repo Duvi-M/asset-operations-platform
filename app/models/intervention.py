@@ -38,6 +38,7 @@ class Intervention(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     technician: Mapped[str] = mapped_column(String(200), nullable=False)
     date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -73,6 +74,7 @@ class InterventionAsset(Base):
         ForeignKey("assets.id", ondelete="RESTRICT"), nullable=False, index=True
     )
 
+    location_note: Mapped[str | None] = mapped_column(String(255), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(

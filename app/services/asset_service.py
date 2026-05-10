@@ -1,19 +1,27 @@
+import logging
+
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.models.asset import Asset
 from app.schemas.asset import AssetCreate, AssetUpdate
-from app.services.exceptions import not_found, conflict, bad_request
+from app.services.exceptions import not_found, conflict, bad_request, service_unavailable
 from app.services.part_service import get_part_or_404
+
+logger = logging.getLogger(__name__)
 
 
 def get_asset_or_404(db: Session, asset_id: int) -> Asset:
-    asset = (
-        db.query(Asset)
-        .options(joinedload(Asset.part))
-        .filter(Asset.id == asset_id)
-        .first()
-    )
+    try:
+        asset = (
+            db.query(Asset)
+            .options(joinedload(Asset.part))
+            .filter(Asset.id == asset_id)
+            .first()
+        )
+    except SQLAlchemyError:
+        logger.exception("Database error loading asset", extra={"asset_id": asset_id})
+        raise service_unavailable("No fue posible consultar el asset en este momento.")
     if not asset:
         raise not_found("Asset", asset_id)
     return asset
@@ -51,7 +59,12 @@ def create_asset(db: Session, data: AssetCreate) -> Asset:
         db.commit()
     except IntegrityError:
         db.rollback()
+        logger.warning("Asset create conflict", extra={"serial_number": data.serial_number, "internal_code": data.internal_code})
         raise conflict("serial_number o internal_code ya existe en otro registro.")
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Database error creating asset")
+        raise service_unavailable("No fue posible registrar el asset en este momento.")
 
     return get_asset_or_404(db, asset.id)
 
@@ -78,12 +91,16 @@ def list_assets(
             Asset.location.ilike(f"%{search}%")
         )
 
-    total = q.count()
-    items = q.order_by(
-    Asset.item_name.asc(),
-    Asset.serial_number.asc(),
-    Asset.id.asc()
-    ).offset(skip).limit(limit).all()
+    try:
+        total = q.count()
+        items = q.order_by(
+            Asset.item_name.asc(),
+            Asset.serial_number.asc(),
+            Asset.id.asc()
+        ).offset(skip).limit(limit).all()
+    except SQLAlchemyError:
+        logger.exception("Database error listing assets", extra={"skip": skip, "limit": limit})
+        raise service_unavailable("No fue posible listar los assets en este momento.")
     
     return total, items
 
@@ -122,6 +139,11 @@ def update_asset(db: Session, asset_id: int, data: AssetUpdate) -> Asset:
         db.commit()
     except IntegrityError:
         db.rollback()
+        logger.warning("Asset update conflict", extra={"asset_id": asset_id})
         raise conflict("serial_number o internal_code ya existe en otro registro.")
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Database error updating asset", extra={"asset_id": asset_id})
+        raise service_unavailable("No fue posible actualizar el asset en este momento.")
 
     return get_asset_or_404(db, asset_id)
