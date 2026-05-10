@@ -1,5 +1,7 @@
 # Field Operations & Inventory Management System
 
+![Project Banner](./image.png)
+
 A full-stack web application for managing field operations, equipment inventory, technical interventions, QR-based asset lookup, evidence uploads, and PDF reporting.
 
 This project is designed as a general-purpose operational system that can be adapted for maintenance teams, technical service providers, internal asset tracking, inspection workflows, and field support operations.
