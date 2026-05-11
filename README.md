@@ -351,7 +351,7 @@ Before publishing or deploying:
 
 ## License
 
-Add a license before publishing this repository.
+Add a license before publishing this repository
 
 Common options:
 
