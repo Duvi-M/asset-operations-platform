@@ -1,6 +1,6 @@
 {
-  "name": "Asset Operations Platform",
-  "short_name": "AssetOps",
+  "name": "SGOI - Sistema de Gestión Operativa e Inventario",
+  "short_name": "SGOI",
   "description": "Sistema operativo de campo para inventario, intervenciones y evidencias.",
   "start_url": "/",
   "scope": "/",

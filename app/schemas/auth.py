@@ -21,6 +21,24 @@ class BootstrapAdminResponse(AppModel):
     message: str
 
 
+class DevPasswordResetRequest(AppModel):
+    email: str = Field(..., min_length=3, max_length=255)
+    new_password: str = Field(..., min_length=8, max_length=200)
+
+
+class DevPasswordResetResponse(AppModel):
+    message: str
+    user_id: int
+    email: str
+
+
+class DevUserDiagnosticRead(AppModel):
+    id: int
+    email: str
+    role: UserRole
+    is_active: bool
+
+
 class UserRead(AppModel):
     id: int
     email: str

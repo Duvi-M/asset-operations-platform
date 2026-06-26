@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.asset import Asset
 from app.models.intervention import Intervention, InterventionAsset
+from app.models.work_order import WorkOrder
 from app.schemas.intervention import (
     InterventionCreate, InterventionUpdate, InterventionAssetCreate,
 )
@@ -12,6 +13,13 @@ from app.services.exceptions import not_found, conflict, bad_request, service_un
 from app.services.asset_service import get_asset_or_404
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_work_order_exists(db: Session, work_order_id: int | None) -> None:
+    if work_order_id is None:
+        return
+    if not db.get(WorkOrder, work_order_id):
+        raise not_found("WorkOrder", work_order_id)
 
 
 def _load_full(db: Session, intervention_id: int) -> Intervention:
@@ -41,6 +49,7 @@ def get_intervention_or_404(db: Session, intervention_id: int) -> Intervention:
 
 
 def create_intervention(db: Session, data: InterventionCreate) -> Intervention:
+    _ensure_work_order_exists(db, data.work_order_id)
     intervention = Intervention(**data.model_dump())
     db.add(intervention)
     try:
@@ -104,6 +113,9 @@ def update_intervention(
     patch = data.model_dump(exclude_unset=True)
     if not patch:
         return intervention
+
+    if "work_order_id" in patch:
+        _ensure_work_order_exists(db, patch["work_order_id"])
 
     for field, value in patch.items():
         setattr(intervention, field, value)

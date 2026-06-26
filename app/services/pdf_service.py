@@ -3,7 +3,7 @@ PDF generation service for Intervention reports.
 
 Layout:
   ┌─────────────────────────────────┐
-  │  AssetOps — Reporte de Intervención │  ← header band
+  │  SGOI — Reporte de Intervención │  ← header band
   ├─────────────────────────────────┤
   │  Datos generales (2-col table)  │
   ├─────────────────────────────────┤

@@ -1,8 +1,9 @@
+const PROD_API_URL = 'https://project-nov.onrender.com'
 const ENV_API_URL = (import.meta.env.VITE_API_URL || '').trim()
-const API_URL = ENV_API_URL || (import.meta.env.DEV ? '' : '')
-const DOCS_BASE_URL = ENV_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : window.location.origin)
+const API_URL = ENV_API_URL || (import.meta.env.DEV ? '' : PROD_API_URL)
+const DOCS_BASE_URL = ENV_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : PROD_API_URL)
 const BASE = `${API_URL}/api/v1`
-const AUTH_STORAGE_KEY = 'asset_ops_auth'
+const AUTH_STORAGE_KEY = 'sgoi_auth'
 
 function getStoredSession() {
   if (typeof window === 'undefined') return null
@@ -68,6 +69,23 @@ async function download(path, filename) {
   window.URL.revokeObjectURL(url)
 }
 
+async function openBlob(path, filename, { download: shouldDownload = false } = {}) {
+  const res = await req(path)
+  const blob = await res.blob()
+  const url = window.URL.createObjectURL(blob)
+
+  if (shouldDownload) {
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+  } else {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  window.setTimeout(() => window.URL.revokeObjectURL(url), 60000)
+}
+
 export const api = {
   baseUrl: API_URL || window.location.origin,
   docsUrl: `${DOCS_BASE_URL}/docs`,
@@ -81,6 +99,7 @@ export const api = {
   getAssets: (params = {}) => json(`/assets${makeQuery(params)}`),
   listAssets: (params = {}) => json(`/assets${makeQuery(params)}`),
   getAsset: (id) => json(`/assets/${id}`),
+  getAssetHistory: (id, params = {}) => json(`/assets/${id}/history${makeQuery(params)}`),
   scanAsset: (code) => json(`/assets/scan/${encodeURIComponent(code)}`),
   createAsset: (data) => json('/assets', { method: 'POST', body: JSON.stringify(data) }),
   updateAsset: (id, data) => json(`/assets/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
@@ -99,6 +118,13 @@ export const api = {
   createIntervention: (data) => json('/interventions', { method: 'POST', body: JSON.stringify(data) }),
   updateIntervention: (id, data) => json(`/interventions/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   addAssetToIntervention: (id, data) => json(`/interventions/${id}/assets`, { method: 'POST', body: JSON.stringify(data) }),
+
+  // Work Orders
+  getWorkOrders: (params = {}) => json(`/work-orders${makeQuery(params)}`),
+  listWorkOrders: (params = {}) => json(`/work-orders${makeQuery(params)}`),
+  getWorkOrder: (id) => json(`/work-orders/${id}`),
+  createWorkOrder: (data) => json('/work-orders', { method: 'POST', body: JSON.stringify(data) }),
+  updateWorkOrder: (id, data) => json(`/work-orders/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
   // Evidence
   getEvidence: (id) => json(`/interventions/${id}/evidence`),
@@ -121,5 +147,38 @@ export const api = {
     fd.append('file', file)
     const res = await req('/import/excel', { method: 'POST', body: fd })
     return res.json()
+  },
+
+  // SGOI Docs
+  searchDocs: (params = {}) => json(`/docs/search${makeQuery(params)}`),
+  listDocs: (params = {}) => json(`/docs/documents${makeQuery(params)}`),
+  createDoc: (data) => json('/docs/documents', { method: 'POST', body: JSON.stringify(data) }),
+  getDoc: (id) => json(`/docs/documents/${id}`),
+  updateDoc: (id, data) => json(`/docs/documents/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  uploadDocFile: async (id, file) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await req(`/docs/documents/${id}/file`, { method: 'POST', body: fd })
+    return res.json()
+  },
+  getDocFile: (id) => json(`/docs/documents/${id}/file`),
+  openDocFile: (id, filename = `sgoi_doc_${id}`) => openBlob(`/docs/documents/${id}/file/open`, filename),
+  downloadDocFile: (id, filename = `sgoi_doc_${id}`) => openBlob(`/docs/documents/${id}/file/open?download=true`, filename, { download: true }),
+  addDocReference: (id, data) => json(`/docs/documents/${id}/references`, { method: 'POST', body: JSON.stringify(data) }),
+  addRelatedDoc: (id, data) => json(`/docs/documents/${id}/related`, { method: 'POST', body: JSON.stringify(data) }),
+  getRelatedDocs: (id) => json(`/docs/documents/${id}/related`),
+  getDocsByReference: (referenceType, referenceValue, params = {}) =>
+    json(`/docs/references/${encodeURIComponent(referenceType)}/${encodeURIComponent(referenceValue)}${makeQuery(params)}`),
+
+  // SGOI Docs Technical Catalog
+  getTechnicalItems: (params = {}) => json(`/docs/items${makeQuery(params)}`),
+  resolveTechnicalItems: (params = {}) => json(`/docs/items/resolve${makeQuery(params)}`),
+  createTechnicalItem: (data) => json('/docs/items', { method: 'POST', body: JSON.stringify(data) }),
+  getTechnicalItem: (id) => json(`/docs/items/${id}`),
+  getTechnicalItemPacket: (id) => json(`/docs/items/${id}/packet`),
+  updateTechnicalItem: (id, data) => json(`/docs/items/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  attachTechnicalItemDocument: (id, data) => json(`/docs/items/${id}/documents`, { method: 'POST', body: JSON.stringify(data) }),
+  detachTechnicalItemDocument: async (id, documentId) => {
+    await req(`/docs/items/${id}/documents/${documentId}`, { method: 'DELETE' })
   },
 }

@@ -1,10 +1,12 @@
 import logging
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.models.asset import Asset
-from app.schemas.asset import AssetCreate, AssetUpdate
+from app.models.intervention import Evidence, Intervention, InterventionAsset
+from app.schemas.asset import AssetCreate, AssetHistoryItem, AssetUpdate
 from app.services.exceptions import not_found, conflict, bad_request, service_unavailable
 from app.services.part_service import get_part_or_404
 
@@ -102,6 +104,64 @@ def list_assets(
         logger.exception("Database error listing assets", extra={"skip": skip, "limit": limit})
         raise service_unavailable("No fue posible listar los assets en este momento.")
     
+    return total, items
+
+
+def _build_intervention_history_title(intervention: Intervention) -> str:
+    return f"{intervention.type.value.replace('_', ' ').title()} - {intervention.rig} / {intervention.pozo}"
+
+
+def list_asset_history(
+    db: Session,
+    asset_id: int,
+    skip: int = 0,
+    limit: int = 50,
+) -> tuple[int, list[AssetHistoryItem]]:
+    get_asset_or_404(db, asset_id)
+
+    evidence_counts = (
+        db.query(
+            Evidence.intervention_id.label("intervention_id"),
+            func.count(Evidence.id).label("evidence_count"),
+        )
+        .group_by(Evidence.intervention_id)
+        .subquery()
+    )
+
+    q = (
+        db.query(
+            Intervention,
+            func.coalesce(evidence_counts.c.evidence_count, 0).label("evidence_count"),
+        )
+        .join(InterventionAsset, InterventionAsset.intervention_id == Intervention.id)
+        .outerjoin(evidence_counts, evidence_counts.c.intervention_id == Intervention.id)
+        .filter(InterventionAsset.asset_id == asset_id)
+    )
+
+    try:
+        total = q.count()
+        rows = (
+            q.order_by(Intervention.created_at.desc(), Intervention.id.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+    except SQLAlchemyError:
+        logger.exception("Database error listing asset history", extra={"asset_id": asset_id})
+        raise service_unavailable("No fue posible consultar el historial del asset en este momento.")
+
+    items = [
+        AssetHistoryItem(
+            intervention_id=intervention.id,
+            title=_build_intervention_history_title(intervention),
+            status="closed" if intervention.end_date else "open",
+            created_at=intervention.created_at,
+            closed_at=intervention.end_date,
+            associated_technician=intervention.technician,
+            evidence_count=int(evidence_count or 0),
+        )
+        for intervention, evidence_count in rows
+    ]
     return total, items
 
 

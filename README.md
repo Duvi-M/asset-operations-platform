@@ -1,4 +1,10 @@
+[Русская версия README](./README.ru.md)
+
+---
+
 # Field Operations & Inventory Management System
+
+![Project Banner](./image.png)
 
 A full-stack web application for managing field operations, equipment inventory, technical interventions, QR-based asset lookup, evidence uploads, and PDF reporting.
 
@@ -349,7 +355,7 @@ Before publishing or deploying:
 
 ## License
 
-Add a license before publishing this repository.
+Add a license before publishing this repository
 
 Common options:
 

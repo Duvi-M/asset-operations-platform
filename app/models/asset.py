@@ -62,6 +62,7 @@ class Asset(Base):
     intervention_assets: Mapped[list["InterventionAsset"]] = relationship(
         "InterventionAsset", back_populates="asset"
     )
+    work_orders: Mapped[list["WorkOrder"]] = relationship("WorkOrder", back_populates="asset")
 
     def __repr__(self) -> str:
         identifier = self.serial_number or self.internal_code

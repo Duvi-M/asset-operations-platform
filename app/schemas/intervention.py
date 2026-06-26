@@ -44,6 +44,7 @@ class InterventionCreate(AppModel):
     technician: str = Field(..., min_length=1, max_length=200, examples=["Juan Pérez"])
     date: Date = Field(..., examples=["2025-06-01"])
     end_date: Date | None = Field(None, examples=["2025-06-02"])
+    work_order_id: int | None = Field(None, gt=0)
 
 
 class InterventionUpdate(AppModel):
@@ -55,6 +56,7 @@ class InterventionUpdate(AppModel):
     technician: str | None = Field(None, min_length=1, max_length=200)
     date: Date | None = None
     end_date: Date | None = None
+    work_order_id: int | None = Field(None, gt=0)
 
 
 class InterventionRead(AppModel):
@@ -66,6 +68,7 @@ class InterventionRead(AppModel):
     technician: str
     date: Date
     end_date: Date | None = None
+    work_order_id: int | None = None
     created_at: datetime
     updated_at: datetime
     intervention_assets: list[InterventionAssetRead] = []
@@ -81,6 +84,7 @@ class InterventionReadSlim(AppModel):
     technician: str
     date: Date
     end_date: Date | None = None
+    work_order_id: int | None = None
     asset_count: int = 0
     evidence_count: int = 0
 

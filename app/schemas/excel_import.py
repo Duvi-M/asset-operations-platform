@@ -14,12 +14,12 @@ class ColumnMapping(AppModel):
     item_name:     str | None = None
     serial_number: str | None = None
     part_number:   str | None = None
-    part_desc:     str | None = None   # Import column: PartDescription
+    part_desc:     str | None = None   # TAT: PartDescription
     status:        str | None = None
     location:      str | None = None
     size:          str | None = None
     internal_code: str | None = None
-    series:        str | None = None   # Import column: Series
+    series:        str | None = None   # TAT: Series
 
 
 class ImportResult(AppModel):

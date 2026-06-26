@@ -6,7 +6,7 @@ from app.api.deps import get_current_user, require_admin
 from app.core.database import get_db
 from app.models.asset import AssetStatus
 from app.models.user import User
-from app.schemas.asset import AssetCreate, AssetRead, AssetUpdate, AssetList
+from app.schemas.asset import AssetCreate, AssetHistoryResponse, AssetRead, AssetUpdate, AssetList
 from app.services import asset_service, qr_service, audit_service
 
 router = APIRouter(prefix="/assets", tags=["Assets"], dependencies=[Depends(get_current_user)])
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/assets", tags=["Assets"], dependencies=[Depends(get_
     description=(
         "Resuelve un código escaneado (QR, serial o código interno) al Asset correspondiente.\n\n"
         "**Estrategias de búsqueda (en orden):**\n"
-        "1. Patrón QR propio: `AOP-ASSET-{id}`\n"
+        "1. Patrón QR propio: `SGOI-ASSET-{id}`\n"
         "2. `serial_number` — coincidencia exacta, sin distinción de mayúsculas\n"
         "3. `internal_code` — coincidencia exacta, sin distinción de mayúsculas\n\n"
         "Devuelve **404** si el código no coincide con ningún Asset."
@@ -96,6 +96,37 @@ def list_assets(
 # ── Single-asset endpoints — parameterised routes last ────────────────────────
 
 @router.get(
+    "/{asset_id}/history",
+    response_model=AssetHistoryResponse,
+    summary="Obtener historial de mantenimiento de un Asset",
+)
+def get_asset_history(
+    asset_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    total, items = asset_service.list_asset_history(
+        db,
+        asset_id=asset_id,
+        skip=skip,
+        limit=limit,
+    )
+    audit_service.log_action(
+        user_id=current_user.id,
+        action="view_asset_history",
+        entity_type="asset",
+        entity_id=asset_id,
+        metadata={
+            "skip": skip,
+            "limit": limit,
+            "total": total,
+        },
+    )
+    return AssetHistoryResponse(total=total, items=items)
+
+@router.get(
     "/{asset_id}",
     response_model=AssetRead,
     summary="Obtener un Asset por ID",
@@ -123,7 +154,7 @@ def update_asset(
     summary="Generar imagen PNG del código QR de un Asset",
     description=(
         "Genera y descarga una imagen PNG con el código QR del Asset.\n\n"
-        "El QR contiene el valor `AOP-ASSET-{id}`, estable e inequívoco.\n"
+        "El QR contiene el valor `SGOI-ASSET-{id}`, estable e inequívoco.\n"
         "La imagen incluye una etiqueta de texto con el identificador "
         "y el serial / código interno para lectura humana."
     ),

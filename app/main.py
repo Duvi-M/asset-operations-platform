@@ -22,6 +22,15 @@ from app.models.part import Part
 from app.models.asset import Asset
 from app.models.intervention import Intervention, InterventionAsset, Evidence
 from app.models.user import User
+from app.models.docs import (
+    DocsDocument,
+    DocsFile,
+    DocsItemReference,
+    DocsRelatedDocument,
+    TechnicalItem,
+    TechnicalItemDocument,
+)
+from app.models.work_order import WorkOrder
 
 configure_logging()
 logger = logging.getLogger(__name__)

@@ -4,6 +4,9 @@ import ImportPage from './pages/ImportPage'
 import InterventionsPage from './pages/InterventionsPage'
 import InterventionDetailPage from './pages/InterventionDetailPage'
 import NewInterventionPage from './pages/NewInterventionPage'
+import WorkOrdersPage from './pages/WorkOrdersPage'
+import WorkOrderDetailPage from './pages/WorkOrderDetailPage'
+import DocsPortalPage from './pages/DocsPortalPage'
 import LoginPage from './pages/LoginPage'
 import { Loading } from './components/ui'
 import { api } from './services/api'
@@ -22,6 +25,13 @@ const NAV = [
     items: [
       { to: '/interventions', icon: '⬒', label: 'Intervenciones', roles: ['admin', 'technician'] },
       { to: '/interventions/new', icon: '+', label: 'Nueva Intervención', roles: ['admin', 'technician'] },
+      { to: '/work-orders', icon: '▣', label: 'Work Orders', roles: ['admin', 'technician'] },
+    ],
+  },
+  {
+    section: 'Conocimiento',
+    items: [
+      { to: '/docs-portal', icon: '▧', label: 'SGOI Docs', roles: ['admin', 'technician'] },
     ],
   },
 ]
@@ -53,7 +63,7 @@ function AppShell() {
   return (
     <div className="app-shell">
       <header className="header">
-        <span className="header-logo">AssetOps</span>
+        <span className="header-logo">SGOI</span>
         <span className="header-sub">Sistema de Gestión Operativa e Inventario</span>
         <div className="header-user">
           <div className="header-user-meta">
@@ -129,6 +139,9 @@ export default function App() {
           <Route path="/interventions" element={<InterventionsPage />} />
           <Route path="/interventions/new" element={<NewInterventionPage />} />
           <Route path="/interventions/:id" element={<InterventionDetailPage />} />
+          <Route path="/work-orders" element={<WorkOrdersPage />} />
+          <Route path="/work-orders/:id" element={<WorkOrderDetailPage />} />
+          <Route path="/docs-portal" element={<DocsPortalPage />} />
         </Route>
       </Route>
 

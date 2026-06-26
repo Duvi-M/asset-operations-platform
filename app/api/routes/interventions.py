@@ -68,6 +68,7 @@ def list_interventions(
             technician=i.technician,
             date=i.date,
             end_date=i.end_date,
+            work_order_id=i.work_order_id,
             asset_count=len(i.intervention_assets),
             evidence_count=len(i.evidences),
         )

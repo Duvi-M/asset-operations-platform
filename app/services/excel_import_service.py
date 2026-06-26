@@ -1,5 +1,5 @@
 """
-Excel import service for external inventory exports.
+Excel import service for TAT inventory exports.
 
 Column mapping strategy
 -----------------------
@@ -10,15 +10,15 @@ Logical fields and their known aliases:
   item_name     → "Item Name", "ItemName", "Description", ...
   serial_number → "Serial Number", "SerialNumber", "SN", ...
   part_number   → "Part Number", "PartNumber", "Part#", "PN", ...
-  part_desc     → "PartDescription", "Part Description", ...  [import-specific]
+  part_desc     → "PartDescription", "Part Description", ...  [TAT-specific]
   status        → "System Status", "Status", "Estado", ...
   location      → "Rig Location", "Location", "Ubicación", ...
   size          → "Size", "Tamaño"  (appended to item_name unless "0")
   internal_code → "Internal Code", "Code", "Código Interno", ...
-  series        → "Series", "Serie"  [import-specific, stored in internal_code
+  series        → "Series", "Serie"  [TAT-specific, stored in internal_code
                    only when serial_number is absent]
 
-External status values → AssetStatus mapping
+Real TAT status values → AssetStatus mapping
 --------------------------------------------
   "In"         → available   (in warehouse)
   "Dirty"      → maintenance (needs cleaning)
@@ -52,7 +52,7 @@ MAX_ERRORS_PER_IMPORT = 500
 MAX_ROWS_PER_IMPORT   = 10_000
 MAX_FIELD_LEN         = 255
 
-# Size values that are import placeholders and should be ignored
+# Size values that are TAT placeholders and should be ignored
 SIZE_IGNORE_VALUES = {"0", "0.0", "none", "n/a", "na", "-"}
 
 # ── Column alias registry ──────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ COLUMN_ALIASES: dict[str, list[str]] = {
         "numero de parte", "nro parte", "nro. parte", "pn",
     ],
     "part_desc": [
-        # External exports PartDescription as a separate column
+        # TAT exports PartDescription as a separate column
         "partdescription", "part description", "part_description",
         "partdesc", "part desc",
     ],
@@ -93,7 +93,7 @@ COLUMN_ALIASES: dict[str, list[str]] = {
         "int code", "int. code",
     ],
     "series": [
-        # import-specific: equipment series/family identifier
+        # TAT-specific: equipment series/family identifier
         "series", "serie",
     ],
 }
@@ -122,7 +122,7 @@ STATUS_MAP: dict[str, AssetStatus] = {
     "baja":         AssetStatus.RETIRED,
     "inactivo":     AssetStatus.RETIRED,
     "desconocido":  AssetStatus.UNKNOWN,
-    # ── External status values ───────────────────────────────────
+    # ── Real TAT values (Sheet1, Mayo 2025) ───────────────────────────────────
     "in":           AssetStatus.AVAILABLE,    # in warehouse → available
     "dirty":        AssetStatus.MAINTENANCE,  # needs cleaning → maintenance
     "field":        AssetStatus.IN_USE,       # deployed in the field

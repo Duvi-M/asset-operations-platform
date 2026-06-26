@@ -39,6 +39,9 @@ class Intervention(Base):
     technician: Mapped[str] = mapped_column(String(200), nullable=False)
     date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    work_order_id: Mapped[int | None] = mapped_column(
+        ForeignKey("work_orders.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -53,6 +56,7 @@ class Intervention(Base):
     evidences: Mapped[list["Evidence"]] = relationship(
         "Evidence", back_populates="intervention", cascade="all, delete-orphan"
     )
+    work_order: Mapped["WorkOrder | None"] = relationship("WorkOrder", back_populates="interventions")
 
     def __repr__(self) -> str:
         return f"<Intervention id={self.id} type={self.type} rig={self.rig!r} date={self.date}>"

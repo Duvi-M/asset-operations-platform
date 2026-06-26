@@ -3,18 +3,18 @@ version: "3.9"
 services:
   db:
     image: postgres:15-alpine
-    container_name: asset_ops_db
+    container_name: sgoi_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-asset_ops_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-asset_ops_pass}
-      POSTGRES_DB: ${POSTGRES_DB:-asset_ops_db}
+      POSTGRES_USER: ${POSTGRES_USER:-sgoi_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sgoi_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-sgoi_db}
     expose:
       - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-asset_ops_user} -d ${POSTGRES_DB:-asset_ops_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sgoi_user} -d ${POSTGRES_DB:-sgoi_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +23,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: asset_ops_api
+    container_name: sgoi_api
     restart: unless-stopped
     env_file:
       - .env

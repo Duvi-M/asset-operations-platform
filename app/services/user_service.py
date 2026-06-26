@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password
 from app.models.user import User, UserRole
-from app.services.exceptions import bad_request, service_unavailable, unauthorized
+from app.services.exceptions import bad_request, not_found, service_unavailable, unauthorized
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,14 @@ def get_user_by_id(db: Session, user_id: int) -> User | None:
     except SQLAlchemyError:
         logger.exception("Database error getting user by id", extra={"user_id": user_id})
         raise service_unavailable("No fue posible consultar el usuario en este momento.")
+
+
+def list_users(db: Session) -> list[User]:
+    try:
+        return db.query(User).order_by(User.id.asc()).all()
+    except SQLAlchemyError:
+        logger.exception("Database error listing users")
+        raise service_unavailable("No fue posible listar los usuarios en este momento.")
 
 
 def authenticate_user(db: Session, email: str, password: str) -> User:
@@ -74,4 +82,23 @@ def create_user(
         raise service_unavailable("No fue posible crear el usuario en este momento.")
 
     logger.info("User created", extra={"user_id": user.id, "email": user.email, "role": user.role.value})
+    return user
+
+
+def reset_user_password_by_email(db: Session, *, email: str, new_password: str) -> User:
+    normalized_email = normalize_email(email)
+    user = get_user_by_email(db, normalized_email)
+    if not user:
+        raise not_found("User", normalized_email)
+
+    user.hashed_password = hash_password(new_password)
+    try:
+        db.commit()
+        db.refresh(user)
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Database error resetting user password", extra={"email": normalized_email})
+        raise service_unavailable("No fue posible actualizar la contraseña en este momento.")
+
+    logger.info("User password reset", extra={"user_id": user.id, "email": user.email})
     return user

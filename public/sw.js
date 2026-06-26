@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'asset-ops-static-v1'
+const STATIC_CACHE = 'sgoi-static-v1'
 const STATIC_ASSETS = [
   '/',
   '/index.html',

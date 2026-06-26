@@ -5,17 +5,18 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # Database
-    database_url: str = "postgresql://asset_ops_user:asset_ops_pass@db:5432/asset_ops_db"
+    database_url: str = "postgresql://sgoi_user:sgoi_pass@db:5432/sgoi_db"
     auto_create_tables: bool = False
 
     # App
-    app_name: str = "Asset Operations Platform"
+    app_name: str = "SGOI - Sistema de Gestión Operativa e Inventario"
     app_version: str = "0.1.0"
     debug: bool = False
     media_dir: str = "/app/media"
     auth_secret_key: str = "change-me-in-production"
     access_token_exp_minutes: int = 60 * 12
-    auth_issuer: str = "asset-operations-platform"
+    auth_issuer: str = "sgoi"
+    dev_reset_token: str = ""
 
     # Cloudinary — si no está configurado, se usa almacenamiento local (dev)
     # Formato: cloudinary://api_key:api_secret@cloud_name
@@ -42,7 +43,7 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def is_default_local_database(self) -> bool:
-        return self.database_url == "postgresql://asset_ops_user:asset_ops_pass@db:5432/asset_ops_db"
+        return self.database_url == "postgresql://sgoi_user:sgoi_pass@db:5432/sgoi_db"
 
     class Config:
         env_file = ".env"

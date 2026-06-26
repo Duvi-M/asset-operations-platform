@@ -70,7 +70,7 @@ def upload_to_cloudinary(
     """
     _ensure_configured()
 
-    folder = f"asset-operations-platform/interventions/{intervention_id}"
+    folder = f"sgoi/interventions/{intervention_id}"
 
     try:
         result = cloudinary.uploader.upload(
@@ -89,6 +89,47 @@ def upload_to_cloudinary(
             extra={"intervention_id": intervention_id, "filename": original_filename},
         )
         raise RuntimeError("No fue posible almacenar la imagen en este momento.") from exc
+
+
+def upload_document_to_cloudinary(
+    content: bytes,
+    original_filename: str,
+    document_id: int,
+    mime_type: str | None = None,
+) -> dict:
+    """
+    Upload a SGOI Docs file to Cloudinary and return storage metadata.
+
+    This keeps the existing evidence upload contract untouched while allowing
+    Docs to persist the provider, URL, and public_id needed for document files.
+    """
+    _ensure_configured()
+
+    folder = f"sgoi/docs/{document_id}"
+
+    try:
+        result = cloudinary.uploader.upload(
+            content,
+            folder=folder,
+            resource_type="auto",
+            use_filename=True,
+            unique_filename=True,
+            overwrite=False,
+            filename_override=original_filename,
+            type="upload",
+        )
+        return {
+            "storage_provider": "cloudinary",
+            "file_url": result["secure_url"],
+            "public_id": result.get("public_id"),
+            "mime_type": mime_type,
+        }
+    except Exception as exc:
+        logger.exception(
+            "Cloudinary document upload failed",
+            extra={"document_id": document_id, "filename": original_filename},
+        )
+        raise RuntimeError("No fue posible almacenar el documento en este momento.") from exc
 
 
 def resolve_image_for_pdf(file_path: str) -> io.BytesIO | str | None:

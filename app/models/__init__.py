@@ -4,6 +4,19 @@ from app.models.asset import Asset, AssetStatus
 from app.models.intervention import Intervention, InterventionAsset, Evidence, InterventionType
 from app.models.user import User, UserRole
 from app.models.audit_log import AuditLog
+from app.models.docs import (
+    DocsDocument,
+    DocsDocumentStatus,
+    DocsFile,
+    DocsItemReference,
+    DocsReferenceType,
+    DocsRelatedDocument,
+    DocsRelationType,
+    TechnicalItem,
+    TechnicalItemDocument,
+    TechnicalItemDocumentRelationType,
+)
+from app.models.work_order import WorkOrder, WorkOrderPriority, WorkOrderStatus
 
 __all__ = [
     "Part",
@@ -16,4 +29,17 @@ __all__ = [
     "User",
     "UserRole",
     "AuditLog",
+    "DocsDocument",
+    "DocsDocumentStatus",
+    "DocsFile",
+    "DocsItemReference",
+    "DocsReferenceType",
+    "DocsRelatedDocument",
+    "DocsRelationType",
+    "TechnicalItem",
+    "TechnicalItemDocument",
+    "TechnicalItemDocumentRelationType",
+    "WorkOrder",
+    "WorkOrderPriority",
+    "WorkOrderStatus",
 ]

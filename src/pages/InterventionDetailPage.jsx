@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { api } from '../services/api'
 import { StatusBadge, Loading, Empty, Alert } from '../components/ui'
+import { DocsBridgePanel } from '../components/DocsBridge'
 
 const TYPE_LABELS = {
   installation: 'Instalación', support: 'Soporte', maintenance: 'Mantenimiento',
@@ -79,7 +80,7 @@ function AssociatePanel({ interventionId, onAdded }) {
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && doSearch()}
           enterKeyHint="search"
-          placeholder="Buscar por nombre, serial o QR: 9442, COMPUTER, AOP-ASSET-94..."
+          placeholder="Buscar por nombre, serial o QR: 9442, COMPUTER, SGOI-ASSET-94..."
         />
 
         <button className="btn btn-primary" disabled={searching} onClick={doSearch}>
@@ -88,7 +89,7 @@ function AssociatePanel({ interventionId, onAdded }) {
       </div>
 
       <div className="quick-hint-row">
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setQuery('AOP-ASSET-')}>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setQuery('SGOI-ASSET-')}>
           Pegar prefijo QR
         </button>
         <span className="helper-text">Primero busca y luego completa ubicación o notas solo si agregan contexto real.</span>
@@ -521,6 +522,31 @@ export default function InterventionDetailPage() {
           <div className="associate-scroll" style={{ maxHeight: '420px', paddingBottom: 12 }}>
             <AssociatePanel interventionId={id} onAdded={load} />
           </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-header">
+          <span className="panel-title">▧ Docs for Associated Assets</span>
+          <span className="helper-text">Quick checks against the external SGOI Docs portal.</span>
+        </div>
+
+        <div className="panel-body">
+          {!iv.intervention_assets?.length ? (
+            <Empty icon="▧" message="Associate assets to check technical documentation" />
+          ) : (
+            <div className="intervention-packet-list">
+              {iv.intervention_assets.map((ia) => (
+                <DocsBridgePanel
+                  key={ia.id}
+                  asset={ia.asset}
+                  title={ia.asset?.item_name || `Asset #${ia.asset_id}`}
+                  compact
+                  limit={12}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
